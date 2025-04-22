@@ -23,11 +23,11 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     <div>
-      <header>Ini Header Dari _app.tsx</header> 
+      {/* <header>Ini Header Dari _app.tsx</header>  */}
       <RootLayout title="Test Passing Title" metaTitle={metaTitle}>
         <Component {...pageProps} />
       </RootLayout>
-      <footer>Ini Footer Dari _app.tsx</footer> 
+      {/* <footer>Ini Footer Dari _app.tsx</footer>  */}
     </div>
   )
 }

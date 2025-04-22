@@ -1,5 +1,6 @@
 import Head from "next/head";
 import { Geist, Geist_Mono } from 'next/font/google'
+import Link from "next/link";
 /*
     Komponen ./layout/index.js menerima prop berupa children dari komponen induk, dan memberikan kembalian berupa komponen
     yang sudah disatukan dengan prop tersebut
@@ -28,10 +29,29 @@ export default function RootLayout({ children, title, metaTitle } : { children: 
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <link rel="icon" href="file.svg" />
             </Head>
-            <div className={`${geistSans.variable} ${geistMono.variable}`}>
-                <div className="header">Header <span>{title || "Default Title"}</span></div>
-                <div>{ children }</div>
-                <div>Footer</div>
+            <div className={`${geistSans.variable} ${geistMono.variable} flex flex-col h-screen`}>
+                <header className='bg-blue-600 text-white'>
+                    <div className="container flex mx-auto justify-between items-center min-h-[100px]">
+                        <h1 className="text-xl font-bold">Next.js App</h1>
+                        <ul className="flex space-x-4">
+                            <li>
+                                <Link href="/">Home</Link>
+                            </li>
+                            <li>
+                                <Link href="/about">About</Link>
+                            </li>
+                        </ul>
+                    </div>
+                </header>
+
+                <main className="flex-1 container mx-auto p-4">
+                    Header <span>{title || "Default Title"}</span>
+                    <div>{ children }</div>
+                </main>
+
+                <footer className="bg-gray-800 text-white p4 text-center">
+                  <p>&copy; { new Date().getFullYear() } My personal Website</p>  
+                </footer>
             </div>
         </div>
     );
