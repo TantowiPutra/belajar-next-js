@@ -1,7 +1,7 @@
-import '../styles/globals.css'
 import RootLayout from '@/layout'
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
+import '../styles/globals.css'
 
 /*
     Sebagai Pembungkus (semua) halaman ketika di load.

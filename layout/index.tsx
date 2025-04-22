@@ -29,7 +29,7 @@ export default function RootLayout({ children, title, metaTitle } : { children: 
                 <link rel="icon" href="file.svg" />
             </Head>
             <div className={`${geistSans.variable} ${geistMono.variable}`}>
-                <div>Header <span>{title || "Default Title"}</span></div>
+                <div className="header">Header <span>{title || "Default Title"}</span></div>
                 <div>{ children }</div>
                 <div>Footer</div>
             </div>
