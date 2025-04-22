@@ -1,3 +1,5 @@
+import Head from "next/head";
+import { Geist, Geist_Mono } from 'next/font/google'
 /*
     Komponen ./layout/index.js menerima prop berupa children dari komponen induk, dan memberikan kembalian berupa komponen
     yang sudah disatukan dengan prop tersebut
@@ -7,13 +9,30 @@
     - && condition check, kalo memenuhi jalani komponen setelahnya, mirip ternary operator, tapi ada di JSX
 */
 
-export default function RootLayout({ children, title } : { children: React.ReactNode; title: string }) {
+const geistSans = Geist({
+    variable: '--font-geist-sans',
+    subsets: ['latin'],
+});
+
+const geistMono = Geist_Mono({
+    variable: '--font-geist-mono',
+    subsets: ['latin'],
+});
+
+export default function RootLayout({ children, title, metaTitle } : { children: React.ReactNode; title: string; metaTitle?: string}) {
     return (
         <div>
-            <div>Header {title && <span>{title}</span>}</div>
-            <div>{ children }</div>
-            <div>Footer</div>
-            <div>Footer 2</div>
+            <Head>
+                <title>{`Next.js App ${metaTitle || "Default Meta Title"}`}</title>
+                <meta name="description" content="ini deskripsi website" />
+                <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <link rel="icon" href="file.svg" />
+            </Head>
+            <div className={`${geistSans.variable} ${geistMono.variable}`}>
+                <div>Header <span>{title || "Default Title"}</span></div>
+                <div>{ children }</div>
+                <div>Footer</div>
+            </div>
         </div>
     );
 }

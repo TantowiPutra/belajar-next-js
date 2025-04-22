@@ -1,6 +1,7 @@
 import '../styles/globals.css'
 import RootLayout from '@/layout'
 import { AppProps } from 'next/app'
+import { useRouter } from 'next/router'
 
 /*
     Sebagai Pembungkus (semua) halaman ketika di load.
@@ -14,13 +15,19 @@ import { AppProps } from 'next/app'
 */
 
 export default function MyApp({ Component, pageProps }: AppProps) {
+  // Custom Hook dari NextJS untuk track routes
+  const router = useRouter();
+
+  // TERNARY CHECK PATH SAAT INI
+  const metaTitle = router.pathname === '/' ? "HOME" : router.pathname.replace('/', '').toUpperCase();
+
   return (
     <div>
-      <header>Ini Header Global</header> 
-      <RootLayout title="Test Passing Title">
+      <header>Ini Header Dari _app.tsx</header> 
+      <RootLayout title="Test Passing Title" metaTitle={metaTitle}>
         <Component {...pageProps} />
       </RootLayout>
-      <footer>Ini Footer Global</footer> 
+      <footer>Ini Footer Dari _app.tsx</footer> 
     </div>
   )
 }
