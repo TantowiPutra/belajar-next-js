@@ -27,7 +27,6 @@ export default function RootLayout({ children, title, metaTitle } : { children: 
                 <title>{`Next.js App ${metaTitle || "Default Meta Title"}`}</title>
                 <meta name="description" content="ini deskripsi website" />
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
-                <link rel="icon" href="file.svg" />
             </Head>
             <div className={`${geistSans.variable} ${geistMono.variable} flex flex-col h-screen`}>
                 <header className='bg-blue-600 text-white'>
@@ -39,6 +38,9 @@ export default function RootLayout({ children, title, metaTitle } : { children: 
                             </li>
                             <li>
                                 <Link href="/about">About</Link>
+                            </li>
+                            <li>
+                                <Link href="/notes/serverSide">Notes</Link>
                             </li>
                         </ul>
                     </div>
