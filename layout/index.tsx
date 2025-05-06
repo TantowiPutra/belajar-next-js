@@ -20,12 +20,12 @@ const geistMono = Geist_Mono({
     subsets: ['latin'],
 });
 
-export default function RootLayout({ children, title, metaTitle } : { children: React.ReactNode; title: string; metaTitle?: string}) {
+export default function RootLayout({ children, title, metaTitle, metaDescription } : { children: React.ReactNode; title: string; metaTitle?: string; metaDescription?: string}) {
     return (
         <div>
             <Head>
                 <title>{`Next.js App ${metaTitle || "Default Meta Title"}`}</title>
-                <meta name="description" content="ini deskripsi website" />
+                <meta name="description" content={`${metaDescription || "Ini Default Description"}`} />
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
             </Head>
             <div className={`${geistSans.variable} ${geistMono.variable} flex flex-col h-screen`}>
