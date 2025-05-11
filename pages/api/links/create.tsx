@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { db } from "@/lib/db";
 import { linksTable } from "@/lib/db/schema";
+import { getToken } from "next-auth/jwt";
 
 type Response = {
     insertedId?: number;
@@ -14,11 +15,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     try {
         const payload = JSON.parse(req.body);
+        const session = await getToken({
+            req,
+            secret: process.env.NEXTAUTH_SECRET 
+        })
+
+        if(!session) {
+            return res.status(403).json({
+                data: [
+                    {
+                        message: "Unauthorized"
+                    }
+                ]
+            })
+        }
 
         const data = await db.insert(linksTable)
                              .values({
-                                title: payload.title,
-                                url  : payload.url
+                                title: payload!.title as string,
+                                email: session!.email as string,
+                                url  : payload!.url as string
                              })
                              .returning({ insertedId: linksTable.id });
 

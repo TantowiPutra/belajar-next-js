@@ -5,19 +5,7 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
-
 import { Button } from "@/components/ui/button"
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-
 import {
     Drawer,
     DrawerClose,
@@ -28,18 +16,21 @@ import {
     DrawerTitle,
     DrawerTrigger,
 } from "@/components/ui/drawer"
-  
 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { useState } from "react"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+
+import FormContainer from "@/container/FormContainer";
 import useSWR from "swr"
- 
-const formSchema = z.object({
-  title: z.string().min(1),
-  url  : z.string().min(1)
-})
+import { useState, useRef } from "react";
+import { getToken } from 'next-auth/jwt'
+import { useSession } from "next-auth/react"
+import { signOut } from "next-auth/react"
 
 type Response = {
     id?: number
@@ -53,116 +44,145 @@ type Response = {
 
 const fetcher = (...args) => fetch(...args).then((res) => res.json());
 
-export default function Home() {
-    const { data: dataLinks, isLoading } = useSWR("/api/links", fetcher);
-    const [Loading, setLoading] = useState<boolean>(false);
-    
-    const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
-        defaultValues: {
-            title: '',
-            url: '',
-        }
-    });
+export const getServerSideProps = async (context: any) => {
+    const token = await getToken({
+        req: context.req,
+        secret: process.env.NEXTAUTH_SECRET
+    })
 
-    async function onSubmit(values: z.infer<typeof formSchema>) {
-        setLoading(true);
-
-        console.log(values)
-
-        try {
-            const response = await fetch('/api/links/create', {
-                method: "POST",
-                body: JSON.stringify(values)
-            })
-
-        }catch(error) {
-
-        } finally {
-            setLoading(false)
+    if(!token) {
+        return {
+            redirect: {
+                destination: '/login',
+                permanent: false,
+            }
         }
     }
 
-    return (
-        <div className="grid grid-cols-1 gap-4">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Form Create Link</CardTitle>
-                    <CardDescription>submit your link here</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                            <FormField
-                            control={form.control}
-                            name="title"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Title</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Title ..." {...field} />
-                                </FormControl>
-                                <FormDescription>
-                                    Title min. 1 Character(s)
-                                </FormDescription>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                            />
-
-                            <FormField
-                            control={form.control}
-                            name="url"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>URL</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="URL ..." {...field} />
-                                </FormControl>
-                                <FormDescription>
-                                    URl min. 1 Character(s)
-                                </FormDescription>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                            />
-
-                            <Button type="submit" disabled={Loading}>{ Loading ? "Loading..." : "Submit" }</Button>
-                        </form>
-                    </Form>
-                </CardContent>
-            </Card>
-
-            {isLoading && <p>Loading...</p>}
-            {
-                dataLinks?.data?.map((link: Response) => 
-                    <Card key={link.id}>
-                        <CardContent key={link.id} className="flex justify-between">
-                            <a key={link.id} href={link.url} target="_blank">{link.title}</a>
-                            <Drawer>
-                                <DrawerTrigger>Edit</DrawerTrigger>
-                                
-                                <DrawerContent>
-                                    <DrawerHeader>
-                                    <DrawerTitle>Are you absolutely sure?</DrawerTitle>
-                                    <DrawerDescription>This action cannot be undone.</DrawerDescription>
-                                    </DrawerHeader>
-                                    <DrawerFooter>
-                                    <Button>Submit</Button>
-                                    <DrawerClose>
-                                        <Button variant="outline">Cancel</Button>
-                                    </DrawerClose>
-                                    </DrawerFooter>
-                                </DrawerContent>
-                            </Drawer>
-                        </CardContent>
-                    </Card>
-                )
-            }
-        </div>
-    )
+    return {
+        props: {}
+    }
 }
 
+export default function Home() {
+    const session = useSession();
+    const [isDeleted, setIsDeleted] = useState<number | null>(null);
+
+    const [showCreate, setShowCreate] = useState<boolean>(false);
+    const [showEdit, setShowEdit] = useState<boolean>(false);
+    const [valueEdit, setValueEdit] = useState<{
+        id?: number;
+        title?: string;
+        url?: string;
+    }>({
+        id: 0,
+        title: '',
+        url: '',
+    });
+
+    const { data: dataLinks, isLoading, mutate } = useSWR("/api/links", fetcher);
+    
+    const handleDelete = async (id: number) => {
+        try {
+            await fetch(`/api/links/delete/${id}`, {
+                method: 'DELETE'
+            })
+            alert("Success!");
+        } catch (error) {
+            
+        } finally {
+            setIsDeleted(null);
+            mutate(); 
+        }
+    };
+
+    return (
+        <>
+            <div className="grid grid-cols-1 gap-4">
+                <div className="container">
+                    <h1 className="text-xl font-bold">{`Hello, ${session?.data?.user?.name} !!`}</h1>
+                    <p>{`This is an area to create your links, so let's put here!`}</p>
+                    <Button className="mt-4" onClick={() => signOut()}>Sign Out</Button>
+                </div>
+                <div className="flex justify-end">
+                    <Button onClick={() => {setShowCreate(true)}}>Add Link</Button>
+                </div>
+
+                {isLoading && <p>Loading...</p>}
+                {
+                    dataLinks?.data?.map((link: Response) => 
+                        <Card key={link.id}>
+                            <CardContent key={link.id} className="flex justify-between">
+                                <a key={link.id} href={link.url} target="_blank">{link.title}</a>
+                                <div>
+                                    <Button size="sm" onClick={() => {
+                                        setValueEdit({
+                                            id: link.id,
+                                            title: link.title,
+                                            url: link.url
+                                        })
+                                        setShowEdit(true);
+                                    }} variant="secondary">Edit</Button>
+
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button variant="destructive" size="sm" onClick={() => setIsDeleted(link.id!)}>Delete</Button>
+                                            </PopoverTrigger>
+                                            {   
+                                                isDeleted == link.id! &&
+                                                <PopoverContent className="w-80">
+                                                    <div className="grid gap-4">
+                                                        <p>Are you sure to delete this data?</p>
+                                                        <Button size="sm" onClick={() =>{
+                                                            handleDelete(link.id!); 
+                                                            setIsDeleted(null)
+                                                        }}>Yes</Button>
+                                                    </div>
+                                                </PopoverContent>
+                                            }
+                                    </Popover>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )
+                }
+            </div>
+
+            {/* DRAWER EDIT */}
+            <Drawer open={showEdit} onOpenChange={setShowEdit}>
+                <DrawerContent>
+                    <div className="container mx-auto p-4">
+                        <FormContainer id={valueEdit.id} values = {{ 
+                            title: valueEdit.title!,
+                            url  : valueEdit.url  !,
+                         }} 
+                         onFinished={() => {
+                            setShowEdit(false);
+                            mutate();
+                         }}
+                         />
+                    </div>
+                </DrawerContent>
+            </Drawer>
+
+            {/* DRAWER CREATE */}
+            <Drawer open={showCreate} onOpenChange={setShowCreate}>
+                <DrawerContent className="p-4">
+                    <CardHeader className="mb-5">
+                        <CardTitle>Form Create Link</CardTitle>
+                        <CardDescription>submit your link here</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <FormContainer onFinished={() => {
+                            setShowCreate(false);
+                            mutate();
+                        }}/>
+                    </CardContent>
+                </DrawerContent>
+            </Drawer>
+        </>
+    )
+}
 /* 
     PENDEKATAN ROUTING MENGGUNAKAN FOLDER
     - profile/index.tsx
